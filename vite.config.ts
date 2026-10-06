@@ -19,7 +19,7 @@ export default defineConfig({
     format: 'es',
   },
   optimizeDeps: {
-    exclude: ['@cadit-app/potrace-ts', 'onnxruntime-web'],
+    exclude: ['onnxruntime-web'],
   },
   build: {
     target: 'esnext',
