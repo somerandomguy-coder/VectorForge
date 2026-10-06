@@ -1,5 +1,6 @@
 import * as ort from 'onnxruntime-web';
 import type { GenerationParams } from './rpc-protocol';
+import { generateProceduralLogo } from './procedural-engine';
 
 /**
  * ONNX Runtime WebGPU Diffusion Pipeline
@@ -75,41 +76,6 @@ export async function runDiffusionInference(
   onStepProgress?.(4, 4, 'Decoding VAE latent to RGB bitmap...');
   await yieldToEventLoop();
 
-  // Create high-contrast output canvas
-  const canvas = new OffscreenCanvas(width, height);
-  const ctx = canvas.getContext('2d')!;
-
-  // Fill pure white background
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, width, height);
-
-  // Draw clean high-contrast geometric diffusion mark
-  ctx.fillStyle = '#0f172a';
-  ctx.strokeStyle = '#0f172a';
-  ctx.lineWidth = 16;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-
-  const cx = width / 2;
-  const cy = height / 2;
-
-  // Render high-contrast silhouette
-  ctx.beginPath();
-  const radius = 150;
-  for (let i = 0; i < 6; i++) {
-    const angle = (i * Math.PI) / 3 - Math.PI / 6;
-    const x = cx + Math.cos(angle) * radius;
-    const y = cy + Math.sin(angle) * radius;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.stroke();
-
-  // Center symbol
-  ctx.beginPath();
-  ctx.arc(cx, cy, 55, 0, Math.PI * 2);
-  ctx.fill();
-
-  return canvas.transferToImageBitmap();
+  // Generate procedural mark with full parametric diversity
+  return generateProceduralLogo(params);
 }
