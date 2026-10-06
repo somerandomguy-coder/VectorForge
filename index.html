@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VectorForge | In-Browser WebGPU AI Vector Logo Studio</title>
+  <meta name="description" content="Client-side, zero-cloud AI vector logo studio powered by WebGPU, SD-Turbo diffusion, OPFS weight streaming, and Potrace vector tracing." />
+  <meta name="keywords" content="WebGPU, client-side AI, vector logo, SVG converter, potrace, OPFS, onnxruntime-web" />
+  <meta name="theme-color" content="#090d16" />
+
+  <!-- Preconnect to Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="./src/styles/index.css" />
+</head>
+<body>
+  <div id="app" class="studio-app">
+    <!-- Top Header Bar -->
+    <header class="studio-header">
+      <div class="header-brand">
+        <div class="brand-logo-icon">
+          <svg viewBox="0 0 32 32" fill="none" class="brand-svg">
+            <defs>
+              <linearGradient id="brand-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8" />
+                <stop offset="50%" stop-color="#6366f1" />
+                <stop offset="100%" stop-color="#ec4899" />
+              </linearGradient>
+              <filter id="glow-brand" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+            <path d="M4 8 L16 2 L28 8 L28 20 L16 30 L4 20 Z" stroke="url(#brand-grad)" stroke-width="2.5" fill="none" filter="url(#glow-brand)" />
+            <path d="M16 6 L24 10 L24 18 L16 24 L8 18 L8 10 Z" fill="url(#brand-grad)" opacity="0.3" />
+            <path d="M12 14 L16 11 L20 14 L16 21 Z" fill="#ffffff" />
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <h1 class="brand-name">Vector<span class="brand-accent">Forge</span></h1>
+          <span class="brand-badge">Client-Side WebGPU Studio</span>
+        </div>
+      </div>
+
+      <!-- Center Status Bars -->
+      <div class="header-status-center">
+        <!-- Hardware Diagnostic Chip -->
+        <button id="hardwareStatusBtn" class="status-pill status-loading" title="Click for WebGPU Hardware Inspection">
+          <span class="status-dot"></span>
+          <span id="hardwareStatusText">Inspecting WebGPU...</span>
+        </button>
+
+        <!-- Storage Quota Chip -->
+        <button id="storageStatusBtn" class="status-pill status-neutral" title="Click to manage local OPFS weight storage">
+          <svg class="pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16M7 6v12M17 6v12" />
+          </svg>
+          <span id="storageStatusText">OPFS Storage</span>
+        </button>
+
+        <!-- Engine Mode Switcher -->
+        <div class="engine-mode-select" title="Toggle between local WebGPU ONNX diffusion and instant procedural synth">
+          <label class="engine-mode-label">Engine:</label>
+          <select id="engineModeSelect" class="engine-dropdown">
+            <option value="turbo-synth" selected>⚡ Turbo Vector Synth (Instant)</option>
+            <option value="webgpu-onnx">🧠 SD-Turbo ONNX (WebGPU Local)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <button id="sampleGalleryBtn" class="btn btn-ghost" title="Load sample prompts">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Samples
+        </button>
+        <button id="helpModalBtn" class="btn btn-ghost" title="Architecture & Guide">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
+          </svg>
+          Docs
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="studio-main">
+      <!-- Left Controls Sidebar -->
+      <aside class="studio-sidebar">
+        <!-- Panel 1: Prompt & Style Studio -->
+        <section class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <span class="panel-step">01</span>
+              <h2 class="panel-title">Prompt & Style Presets</h2>
+            </div>
+            <span class="panel-hint">Symbol Only</span>
+          </div>
+
+          <!-- Prompt Input -->
+          <div class="control-group">
+            <label for="promptInput" class="control-label">
+              <span>Keyword / Subject</span>
+              <span class="label-subtext">No words/letters in mark</span>
+            </label>
+            <div class="prompt-input-wrapper">
+              <textarea 
+                id="promptInput" 
+                class="prompt-textarea" 
+                rows="2" 
+                placeholder="e.g. cybernetic falcon silhouette, origami fox emblem, quantum vortex..."
+                spellcheck="false"
+              >cybernetic falcon silhouette</textarea>
+              <button id="randomPromptBtn" class="btn-prompt-random" title="Randomize prompt">
+                🎲
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Suggestion Pills -->
+          <div class="quick-keywords" id="quickKeywordsContainer">
+            <button class="keyword-chip" data-prompt="cybernetic falcon silhouette">🦅 Falcon</button>
+            <button class="keyword-chip" data-prompt="origami fox emblem">🦊 Fox</button>
+            <button class="keyword-chip" data-prompt="quantum atom vortex">⚛️ Atom</button>
+            <button class="keyword-chip" data-prompt="geometric wolf head">🐺 Wolf</button>
+            <button class="keyword-chip" data-prompt="minimal rocket glyph">🚀 Rocket</button>
+            <button class="keyword-chip" data-prompt="crown emblem linework">👑 Crown</button>
+          </div>
+
+          <!-- Style Preset Cards -->
+          <div class="control-group">
+            <label class="control-label">Logo Style Preset</label>
+            <div class="style-preset-grid" id="presetGrid">
+              <button class="preset-card active" data-preset="minimal-vector">
+                <div class="preset-icon">📐</div>
+                <div class="preset-info">
+                  <span class="preset-name">Minimal Vector</span>
+                  <span class="preset-desc">Clean 2D corporate silhouette</span>
+                </div>
+              </button>
+
+              <button class="preset-card" data-preset="app-icon">
+                <div class="preset-icon">📱</div>
+                <div class="preset-info">
+                  <span class="preset-name">Modern App Icon</span>
+                  <span class="preset-desc">Sleek rounded glyph</span>
+                </div>
+              </button>
+
+              <button class="preset-card" data-preset="monogram">
+                <div class="preset-icon">💠</div>
+                <div class="preset-info">
+                  <span class="preset-name">Monogram Emblem</span>
+                  <span class="preset-desc">Interlocking geometry</span>
+                </div>
+              </button>
+
+              <button class="preset-card" data-preset="geometric-badge">
+                <div class="preset-icon">🛡️</div>
+                <div class="preset-info">
+                  <span class="preset-name">Geometric Badge</span>
+                  <span class="preset-desc">Hexagonal crisp stamp</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Generation Parameters -->
+          <div class="param-row">
+            <div class="param-field">
+              <label for="seedInput" class="control-label">Seed</label>
+              <div class="seed-input-group">
+                <input type="number" id="seedInput" class="input-text" value="42" min="1" max="2147483647" />
+                <button id="randomSeedBtn" class="btn btn-icon" title="Random seed">🎲</button>
+              </div>
+            </div>
+            <div class="param-field">
+              <label for="stepCount" class="control-label">Steps</label>
+              <select id="stepCount" class="input-select">
+                <option value="1" selected>1 Step (SD-Turbo)</option>
+                <option value="2">2 Steps (Refined)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Action Generate Button -->
+          <button id="generateBtn" class="btn btn-primary btn-generate">
+            <span class="btn-glow"></span>
+            <svg class="btn-icon-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />
+            </svg>
+            <span id="generateBtnText">Forge Vector Logo</span>
+            <kbd class="btn-kbd">Ctrl+↵</kbd>
+          </button>
+        </section>
+
+        <!-- Panel 2: Vectorization & Alpha Knockout -->
+        <section class="panel-card accordion-card" id="vectorTuningCard">
+          <div class="accordion-header" id="vectorTuningToggle">
+            <div class="panel-title-group">
+              <span class="panel-step">02</span>
+              <h2 class="panel-title">Vector & Knockout Tuning</h2>
+            </div>
+            <span class="accordion-arrow">▾</span>
+          </div>
+
+          <div class="accordion-body">
+            <!-- Alpha Threshold Slider -->
+            <div class="control-group">
+              <div class="slider-header">
+                <label for="thresholdSlider" class="control-label">Alpha Knockout Threshold</label>
+                <span id="thresholdVal" class="slider-val">205</span>
+              </div>
+              <input type="range" id="thresholdSlider" min="50" max="254" value="205" class="slider" />
+              <span class="field-hint">Luminance above this level becomes transparent background</span>
+            </div>
+
+            <!-- Invert & Filter Controls -->
+            <div class="checkbox-row">
+              <label class="toggle-switch">
+                <input type="checkbox" id="invertMaskCheckbox" />
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">Invert Mask (Light on Dark)</span>
+              </label>
+            </div>
+
+            <!-- Potrace Turdsize Slider -->
+            <div class="control-group">
+              <div class="slider-header">
+                <label for="turdsizeSlider" class="control-label">Speckle Suppression (Turdsize)</label>
+                <span id="turdsizeVal" class="slider-val">3 px</span>
+              </div>
+              <input type="range" id="turdsizeSlider" min="0" max="25" value="3" class="slider" />
+              <span class="field-hint">Eliminates noise artifacts smaller than specified pixel area</span>
+            </div>
+
+            <!-- Curve Optimization -->
+            <div class="control-group">
+              <div class="slider-header">
+                <label for="curveToleranceSlider" class="control-label">Curve Smoothness</label>
+                <span id="curveToleranceVal" class="slider-val">0.2</span>
+              </div>
+              <input type="range" id="curveToleranceSlider" min="0.05" max="1.0" step="0.05" value="0.2" class="slider" />
+              <span class="field-hint">Bezier curve fitting precision</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Panel 3: Brand Typography Layer -->
+        <section class="panel-card accordion-card" id="typographyCard">
+          <div class="accordion-header" id="typographyToggle">
+            <div class="panel-title-group">
+              <span class="panel-step">03</span>
+              <h2 class="panel-title">Brand Typography & Layout</h2>
+            </div>
+            <span class="accordion-arrow">▾</span>
+          </div>
+
+          <div class="accordion-body">
+            <div class="control-group">
+              <label for="brandNameInput" class="control-label">Brand Name</label>
+              <input type="text" id="brandNameInput" class="input-text" value="VECTORFORGE" placeholder="e.g. ACME LABS" />
+            </div>
+
+            <div class="control-group">
+              <label for="taglineInput" class="control-label">Subtitle / Tagline</label>
+              <input type="text" id="taglineInput" class="input-text" value="INTELLIGENT VECTOR STUDIO" placeholder="e.g. STUDIO & LABS" />
+            </div>
+
+            <div class="param-row">
+              <div class="param-field">
+                <label for="brandFontSelect" class="control-label">Font Family</label>
+                <select id="brandFontSelect" class="input-select">
+                  <option value="'Space Grotesk', sans-serif" selected>Space Grotesk (Tech)</option>
+                  <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta (Modern)</option>
+                  <option value="'Outfit', sans-serif">Outfit (Geometric)</option>
+                  <option value="'JetBrains Mono', monospace">JetBrains Mono (Code)</option>
+                </select>
+              </div>
+
+              <div class="param-field">
+                <label for="brandLayoutSelect" class="control-label">Layout</label>
+                <select id="brandLayoutSelect" class="input-select">
+                  <option value="stacked" selected>Stacked (Mark Top)</option>
+                  <option value="horizontal">Horizontal (Mark Left)</option>
+                  <option value="mark-only">Mark Only</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="slider-header">
+                <label for="letterSpacingSlider" class="control-label">Letter Spacing</label>
+                <span id="letterSpacingVal" class="slider-val">4 px</span>
+              </div>
+              <input type="range" id="letterSpacingSlider" min="0" max="16" value="4" class="slider" />
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Center Live Stage -->
+      <section class="studio-stage">
+        <!-- Stage Toolbar -->
+        <div class="stage-toolbar">
+          <!-- View Modes -->
+          <div class="view-modes" id="viewModeGroup">
+            <button class="view-tab active" data-mode="vector">
+              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+              <span>SVG Vector</span>
+            </button>
+            <button class="view-tab" data-mode="brand">
+              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M9 3v18M3 9h18" />
+              </svg>
+              <span>Brand Mockup</span>
+            </button>
+            <button class="view-tab" data-mode="knockout">
+              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 2a10 10 0 0110 10 10 10 0 01-10 10" />
+              </svg>
+              <span>Alpha Mask</span>
+            </button>
+            <button class="view-tab" data-mode="raster">
+              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+              <span>Raw Raster</span>
+            </button>
+          </div>
+
+          <!-- Color Swatches & Real-Time Recoloring -->
+          <div class="recolor-toolbar">
+            <span class="recolor-label">Color:</span>
+            <div class="swatches-row" id="swatchesContainer">
+              <button class="swatch-btn active" data-color="#6366f1" style="--swatch-color: #6366f1;" title="Indigo Electric"></button>
+              <button class="swatch-btn" data-color="#06b6d4" style="--swatch-color: #06b6d4;" title="Cyan Neon"></button>
+              <button class="swatch-btn" data-color="#10b981" style="--swatch-color: #10b981;" title="Emerald"></button>
+              <button class="swatch-btn" data-color="#f59e0b" style="--swatch-color: #f59e0b;" title="Amber"></button>
+              <button class="swatch-btn" data-color="#f43f5e" style="--swatch-color: #f43f5e;" title="Rose Pink"></button>
+              <button class="swatch-btn" data-color="#ffffff" style="--swatch-color: #ffffff;" title="Pure White"></button>
+              <button class="swatch-btn" data-color="#0f172a" style="--swatch-color: #0f172a;" title="Obsidian"></button>
+            </div>
+            <div class="color-picker-wrapper">
+              <input type="color" id="customColorPicker" value="#6366f1" class="color-picker-input" />
+              <input type="text" id="customColorHex" value="#6366F1" maxlength="7" class="color-hex-input" spellcheck="false" />
+            </div>
+          </div>
+
+          <!-- Backdrop Background Controls -->
+          <div class="stage-backdrop-controls">
+            <button class="backdrop-btn active" data-bg="grid-dark" title="Dark Transparency Grid">🏁 Dark</button>
+            <button class="backdrop-btn" data-bg="grid-light" title="Light Transparency Grid">🏁 Light</button>
+            <button class="backdrop-btn" data-bg="solid-dark" title="Solid Pitch Black">⬛ Solid</button>
+            <button class="backdrop-btn" data-bg="solid-light" title="Solid White">⬜ White</button>
+          </div>
+        </div>
+
+        <!-- Canvas / SVG Viewport Container -->
+        <div class="viewport-outer" id="viewportOuter">
+          <div class="viewport-canvas-container grid-dark" id="viewportCanvasContainer">
+            <!-- Loading Overlay HUD -->
+            <div class="hud-overlay" id="hudOverlay">
+              <div class="hud-spinner"></div>
+              <div class="hud-stage-name" id="hudStageName">Forging Vector Logo...</div>
+              <div class="hud-subtext" id="hudSubtext">Synthesizing vector paths on WebGPU</div>
+              <div class="hud-progress-bar">
+                <div class="hud-progress-fill" id="hudProgressFill" style="width: 20%;"></div>
+              </div>
+            </div>
+
+            <!-- Live SVG Render Container -->
+            <div class="svg-render-stage" id="svgRenderStage">
+              <!-- Dynamically injected SVG elements -->
+            </div>
+
+            <!-- Canvas for Raster and Knockout views -->
+            <canvas id="mainCanvas" width="512" height="512" class="main-canvas"></canvas>
+          </div>
+
+          <!-- Viewport Zoom / Reset Controls Overlay -->
+          <div class="viewport-hud-controls">
+            <button id="zoomInBtn" class="hud-btn" title="Zoom In">+</button>
+            <span id="zoomPercent" class="hud-zoom-text">100%</span>
+            <button id="zoomOutBtn" class="hud-btn" title="Zoom Out">-</button>
+            <button id="zoomResetBtn" class="hud-btn" title="Reset View">Fit</button>
+          </div>
+
+          <!-- Telemetry Status Pill -->
+          <div class="telemetry-bar" id="telemetryBar">
+            <div class="telemetry-item">
+              <span class="telemetry-label">Inference:</span>
+              <span id="telemetryInference" class="telemetry-val">0ms</span>
+            </div>
+            <div class="telemetry-divider"></div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Tracing:</span>
+              <span id="telemetryTrace" class="telemetry-val">0ms</span>
+            </div>
+            <div class="telemetry-divider"></div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">SVG Paths:</span>
+              <span id="telemetryPaths" class="telemetry-val">0 paths</span>
+            </div>
+            <div class="telemetry-divider"></div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Privacy:</span>
+              <span class="telemetry-val text-accent">100% Client-Side</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export & Output Bar -->
+        <footer class="studio-export-bar">
+          <div class="export-presets-info">
+            <span class="export-title">Export Clean Vector & Assets:</span>
+            <span class="export-meta">Resolution: Infinite Scalable Vector & 512×512 HD Bitmap</span>
+          </div>
+
+          <div class="export-actions">
+            <!-- Copy SVG Code -->
+            <button id="copySvgBtn" class="btn btn-secondary" title="Copy raw SVG markup to clipboard">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+              </svg>
+              <span>Copy SVG</span>
+            </button>
+
+            <!-- Download SVG -->
+            <button id="downloadSvgBtn" class="btn btn-primary" title="Download standalone SVG vector file">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+              </svg>
+              <span>Download SVG</span>
+            </button>
+
+            <!-- Download PNG -->
+            <button id="downloadPngBtn" class="btn btn-secondary" title="Download 512x512 transparent PNG">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14" />
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+              </svg>
+              <span>PNG (512px)</span>
+            </button>
+
+            <!-- Download High-Res PNG 1024 -->
+            <button id="downloadPng1024Btn" class="btn btn-secondary" title="Download 1024x1024 transparent PNG">
+              <span>PNG (1024px)</span>
+            </button>
+
+            <!-- Download Favicon ICO -->
+            <button id="downloadIcoBtn" class="btn btn-secondary" title="Download multi-resolution favicon.ico">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+              <span>Favicon (.ICO)</span>
+            </button>
+          </div>
+        </footer>
+      </section>
+    </main>
+
+    <!-- Modal 1: Hardware Pre-Flight & Diagnostics -->
+    <div class="modal-backdrop" id="hardwareModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-icon">⚡</span>
+            <h3 class="modal-title">WebGPU Hardware Pre-Flight Inspection</h3>
+          </div>
+          <button class="modal-close-btn" data-close="hardwareModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-intro">
+            VectorForge queries your browser's WebGPU interface and adapter capabilities to evaluate shader performance and storage buffer allocation limits.
+          </p>
+
+          <div class="diagnostic-list" id="diagnosticList">
+            <div class="diag-item">
+              <div class="diag-status-icon" id="diagIconGpu">⏳</div>
+              <div class="diag-details">
+                <div class="diag-name">WebGPU API (<code class="diag-code">navigator.gpu</code>)</div>
+                <div class="diag-val" id="diagValGpu">Inspecting availability...</div>
+              </div>
+            </div>
+
+            <div class="diag-item">
+              <div class="diag-status-icon" id="diagIconF16">⏳</div>
+              <div class="diag-details">
+                <div class="diag-name">FP16 Half-Precision Shaders (<code class="diag-code">shader-f16</code>)</div>
+                <div class="diag-val" id="diagValF16">Checking feature support...</div>
+              </div>
+            </div>
+
+            <div class="diag-item">
+              <div class="diag-status-icon" id="diagIconBuffer">⏳</div>
+              <div class="diag-details">
+                <div class="diag-name">Max Storage Buffer Binding Size</div>
+                <div class="diag-val" id="diagValBuffer">Querying adapter limits...</div>
+              </div>
+            </div>
+
+            <div class="diag-item">
+              <div class="diag-status-icon" id="diagIconOpfs">⏳</div>
+              <div class="diag-details">
+                <div class="diag-name">Origin Private File System (OPFS)</div>
+                <div class="diag-val" id="diagValOpfs">Querying storage quota...</div>
+              </div>
+            </div>
+
+            <div class="diag-item">
+              <div class="diag-status-icon" id="diagIconAdapter">⏳</div>
+              <div class="diag-details">
+                <div class="diag-name">GPU Adapter & Vendor</div>
+                <div class="diag-val" id="diagValAdapter">Detecting graphics device...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-note" id="diagSummaryNote">
+            Running in client-side mode. No external servers or API tokens required.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-close="hardwareModal">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 2: OPFS Weight Storage Manager -->
+    <div class="modal-backdrop" id="storageModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-icon">💾</span>
+            <h3 class="modal-title">OPFS Weight Storage Manager</h3>
+          </div>
+          <button class="modal-close-btn" data-close="storageModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-intro">
+            VectorForge streams distilled ONNX weights directly into your browser's private sandbox (OPFS) via chunked streams. Once cached, model startup is instantaneous and works 100% offline.
+          </p>
+
+          <div class="storage-stats-box">
+            <div class="stat-row">
+              <span class="stat-name">Model Target:</span>
+              <span class="stat-value">SD-Turbo Distilled FP16 (ONNX WebGPU)</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-name">Estimated Size:</span>
+              <span class="stat-value">~1.45 GB (UNet + VAE + Text Encoder)</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-name">Local OPFS Status:</span>
+              <span class="stat-value" id="opfsCacheStatus">Checking cache...</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-name">Available Browser Quota:</span>
+              <span class="stat-value" id="opfsQuotaInfo">Calculating...</span>
+            </div>
+          </div>
+
+          <!-- Download Progress Section -->
+          <div class="download-stream-box" id="downloadStreamBox">
+            <div class="download-stream-header">
+              <span id="downloadStageLabel">Ready to stream weights</span>
+              <span id="downloadSpeedLabel">0.0 MB/s</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="downloadProgressFill" style="width: 0%;"></div>
+            </div>
+            <div class="download-bytes-info" id="downloadBytesLabel">0 MB / 1450 MB (0%)</div>
+          </div>
+
+          <div class="storage-controls-row">
+            <button id="streamWeightsBtn" class="btn btn-primary">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Download & Cache Weights</span>
+            </button>
+            <button id="clearWeightsBtn" class="btn btn-secondary btn-danger">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>Clear OPFS Cache</span>
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-close="storageModal">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 3: Sample Gallery -->
+    <div class="modal-backdrop" id="galleryModal">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-icon">🎨</span>
+            <h3 class="modal-title">VectorForge Sample Gallery</h3>
+          </div>
+          <button class="modal-close-btn" data-close="galleryModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-intro">
+            Click any curated logo concept below to load its prompt, style preset, and typography settings immediately.
+          </p>
+          <div class="gallery-grid" id="sampleGalleryGrid">
+            <!-- Dynamically populated sample cards -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-close="galleryModal">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 4: Architecture & Guide -->
+    <div class="modal-backdrop" id="guideModal">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-icon">📖</span>
+            <h3 class="modal-title">VectorForge System Architecture</h3>
+          </div>
+          <button class="modal-close-btn" data-close="guideModal">✕</button>
+        </div>
+        <div class="modal-body markdown-body">
+          <h4>Zero-Cloud In-Browser Pipeline</h4>
+          <ol>
+            <li><strong>Web Worker AI Execution:</strong> The Web Worker checks for WebGPU support, compiles 16-bit float shaders, and executes distilled diffusion (SD-Turbo) via ONNX Runtime Web.</li>
+            <li><strong>OPFS Storage Streaming:</strong> Weights are streamed directly to the Origin Private File System using chunked ReadableStreams without crashing browser JS heap.</li>
+            <li><strong>Canvas Alpha Knockout:</strong> The raw bitmap is processed on an OffscreenCanvas with luminance thresholding to remove solid backgrounds client-side.</li>
+            <li><strong>Potrace Vector Tracing:</strong> The binarized mask is traced into high-precision SVG paths using the Potrace vector algorithm.</li>
+            <li><strong>Real-Time Recolor & Typography:</strong> Recolor SVG paths instantly with zero re-inference, format typography with clean vector text, and export to SVG, PNG, and multi-icon ICO.</li>
+          </ol>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-close="guideModal">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+  </div>
+
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
