@@ -1,12 +1,12 @@
-import Bitmap from './Bitmap';
-import Path from './Path';
-import Point from './Point';
-import Curve from './Curve';
-import bitmapToPathList from './bitmapToPathList';
-import processPath from './processPath';
-import getSVG from './getSVG';
-import getPaths from './getPaths';
-import { imageDataToBitmap } from './utils';
+import Bitmap from './Bitmap.js';
+import Path from './Path.js';
+import Point from './Point.js';
+import Curve from './Curve.js';
+import bitmapToPathList from './bitmapToPathList.js';
+import processPath from './processPath.js';
+import getSVG from './getSVG.js';
+import getPaths from './getPaths.js';
+import { imageDataToBitmap } from './utils.js';
 
 export type TurnPolicy = 'right' | 'black' | 'white' | 'majority' | 'minority';
 

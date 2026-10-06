@@ -1,4 +1,4 @@
-import Bitmap from './Bitmap';
+import Bitmap from './Bitmap.js';
 /**
  * Returns the sign of a number: 1, -1, or 0
  */

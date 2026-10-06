@@ -113,9 +113,9 @@
                 id="promptInput" 
                 class="prompt-textarea" 
                 rows="2" 
-                placeholder="e.g. cybernetic falcon silhouette, origami fox emblem, quantum vortex..."
+                placeholder="e.g. vectorforge emblem, cybernetic falcon silhouette, quantum vortex..."
                 spellcheck="false"
-              >cybernetic falcon silhouette</textarea>
+              >vectorforge emblem, geometric anvil and vector nodes</textarea>
               <button id="randomPromptBtn" class="btn-prompt-random" title="Randomize prompt">
                 🎲
               </button>
@@ -124,6 +124,7 @@
 
           <!-- Quick Suggestion Pills -->
           <div class="quick-keywords" id="quickKeywordsContainer">
+            <button class="keyword-chip" data-prompt="vectorforge emblem, geometric anvil and vector nodes">⚡ VectorForge</button>
             <button class="keyword-chip" data-prompt="cybernetic falcon silhouette">🦅 Falcon</button>
             <button class="keyword-chip" data-prompt="origami fox emblem">🦊 Fox</button>
             <button class="keyword-chip" data-prompt="quantum atom vortex">⚛️ Atom</button>
@@ -136,7 +137,7 @@
           <div class="control-group">
             <label class="control-label">Logo Style Preset</label>
             <div class="style-preset-grid" id="presetGrid">
-              <button class="preset-card active" data-preset="minimal-vector">
+              <button class="preset-card" data-preset="minimal-vector">
                 <div class="preset-icon">📐</div>
                 <div class="preset-info">
                   <span class="preset-name">Minimal Vector</span>
@@ -160,7 +161,7 @@
                 </div>
               </button>
 
-              <button class="preset-card" data-preset="geometric-badge">
+              <button class="preset-card active" data-preset="geometric-badge">
                 <div class="preset-icon">🛡️</div>
                 <div class="preset-info">
                   <span class="preset-name">Geometric Badge</span>

@@ -134,6 +134,56 @@ npm run preview
 
 ---
 
+## 🤖 Model Context Protocol (MCP) Server
+
+VectorForge includes a built-in MCP server conforming to the **2026 Stateless Model Context Protocol specification**. This enables AI coding agents (such as Antigravity, Claude Desktop, Cursor, or autonomous LLM pipelines) to generate vector logos, recolor vector assets, and compose brand typography programmatically.
+
+### Available MCP Tools
+
+| Tool | Description | Key Parameters |
+| :--- | :--- | :--- |
+| `forge_vector_logo` | Generates clean SVG vector mark | `prompt`, `style`, `colorHex`, `brandName`, `tagline`, `layout` |
+| `recolor_vector_logo` | Instantly recolors existing SVG paths | `svgString`, `newColorHex` |
+| `compose_brand_mockup` | Composes mark SVG with brand typography | `markSvg`, `brandName`, `tagline`, `layout`, `fontFamily` |
+| `list_presets_and_samples` | Returns presets and sample prompts | None |
+
+### Running the MCP Server
+
+#### Option A: STDIO Transport (Default for AI Assistants)
+Add VectorForge to your client configuration (e.g. `claude_desktop_config.json` or `mcp_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "vectorforge": {
+      "command": "npx",
+      "args": ["-y", "tsx", "<path-to-vectorforge>/src/mcp/server.ts"]
+    }
+  }
+}
+```
+
+Or run directly via npm:
+```bash
+npm run mcp
+```
+
+#### Option B: 2026 Stateless Streamable HTTP Transport
+Run as an independent HTTP microservice:
+```bash
+npm run mcp:http
+# Or custom port:
+npx tsx src/mcp/server.ts --http 3000
+```
+Each HTTP POST request is 100% self-contained and stateless, enabling horizontal scaling without sticky session pinning or handshake affinity.
+
+#### Run MCP Test Suite
+```bash
+npm run test:mcp
+```
+
+---
+
 ## ⚙️ Hardware & Browser Compatibility
 
 | Browser | WebGPU Status | FP16 Shaders (`shader-f16`) | Notes |

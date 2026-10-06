@@ -44,8 +44,10 @@ export async function generateProceduralLogo(params: GenerationParams): Promise<
 
   ctx.save();
 
-  // Draw according to style & motif
-  if (style === 'app-icon') {
+  // 0. Dedicated VectorForge Brand Mark Motif
+  if (lowerPrompt.includes('vectorforge') || lowerPrompt.includes('forge') || lowerPrompt.includes('anvil')) {
+    renderVectorForgeEmblem(ctx, cx, cy, rng);
+  } else if (style === 'app-icon') {
     renderAppIconMotif(ctx, cx, cy, rng, lowerPrompt);
   } else if (style === 'monogram') {
     renderMonogramMotif(ctx, cx, cy, rng, lowerPrompt);
@@ -392,3 +394,72 @@ function renderGeometricBadgeMotif(
     ctx.fill();
   }
 }
+
+/**
+ * VectorForge Brand Emblem: Hexagonal Shield + Precision Forge Anvil + Vector Node
+ */
+function renderVectorForgeEmblem(
+  ctx: OffscreenCanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  _rng: () => number
+) {
+  // 1. Outer Faceted Hexagonal Shield Badge
+  const r = 168;
+  ctx.lineWidth = 16;
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const angle = (i * Math.PI) / 3 - Math.PI / 6;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+
+  // 2. Solid Forge Anvil Body
+  ctx.beginPath();
+  // Anvil top table
+  ctx.moveTo(cx - 110, cy - 65);
+  ctx.lineTo(cx + 100, cy - 65);
+  // Anvil horn (right sweep)
+  ctx.bezierCurveTo(cx + 135, cy - 65, cx + 155, cy - 50, cx + 175, cy - 35);
+  ctx.lineTo(cx + 130, cy - 20);
+  ctx.lineTo(cx + 70, cy - 15);
+  // Anvil waist / step
+  ctx.bezierCurveTo(cx + 50, cy + 15, cx + 60, cy + 50, cx + 80, cy + 75);
+  // Anvil base
+  ctx.lineTo(cx + 115, cy + 95);
+  ctx.lineTo(cx - 115, cy + 95);
+  ctx.lineTo(cx - 80, cy + 75);
+  ctx.bezierCurveTo(cx - 60, cy + 50, cx - 50, cy + 15, cx - 70, cy - 15);
+  // Left stepped horn
+  ctx.lineTo(cx - 130, cy - 20);
+  ctx.lineTo(cx - 110, cy - 65);
+  ctx.closePath();
+  ctx.fill();
+
+  // 3. Precision Vector Cutout: Diamond Anchor Node & Axis Sparks
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  // Center diamond node
+  const nodeSize = 36;
+  ctx.moveTo(cx, cy - nodeSize);
+  ctx.lineTo(cx + nodeSize, cy);
+  ctx.lineTo(cx, cy + nodeSize);
+  ctx.lineTo(cx - nodeSize, cy);
+  ctx.closePath();
+  ctx.fill();
+
+  // Center vector anchor pin
+  ctx.fillStyle = '#0a0d18';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Horizontal vector alignment cut
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(cx - 85, cy + 45, 170, 7);
+}
+

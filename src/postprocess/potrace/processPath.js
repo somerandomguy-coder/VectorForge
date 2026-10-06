@@ -1,8 +1,8 @@
-import Point from './Point';
-import Curve from './Curve';
-import Quad from './Quad';
-import Sum from './Sum';
-import { sign } from './utils';
+import Point from './Point.js';
+import Curve from './Curve.js';
+import Quad from './Quad.js';
+import Sum from './Sum.js';
+import { sign } from './utils.js';
 /**
  * Process paths to generate smooth curves
  */

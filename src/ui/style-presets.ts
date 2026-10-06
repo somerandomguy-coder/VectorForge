@@ -62,6 +62,16 @@ export interface SampleConcept {
 
 export const SAMPLE_CONCEPTS: SampleConcept[] = [
   {
+    id: 'vectorforge-emblem',
+    title: 'VectorForge Core',
+    keyword: 'vectorforge emblem, geometric anvil and vector nodes',
+    style: 'geometric-badge',
+    brandName: 'VECTORFORGE',
+    tagline: 'INTELLIGENT VECTOR STUDIO',
+    seed: 42,
+    color: '#6366f1',
+  },
+  {
     id: 'cyber-falcon',
     title: 'Cyber Falcon',
     keyword: 'cybernetic falcon silhouette',

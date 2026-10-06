@@ -1,4 +1,4 @@
-import Point from './Point';
+import Point from './Point.js';
 /**
  * Bitmap class for storing binary image data
  * This is the main input for the tracing algorithm

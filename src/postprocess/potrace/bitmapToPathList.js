@@ -1,5 +1,5 @@
-import Path from './Path';
-import Point from './Point';
+import Path from './Path.js';
+import Point from './Point.js';
 /**
  * Convert a bitmap to a list of paths (outlines)
  */

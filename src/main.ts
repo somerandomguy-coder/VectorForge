@@ -22,7 +22,7 @@ let worker: Worker;
 let canvasController: CanvasViewController;
 let hardwareInfo: HardwareInspectionResult | null = null;
 
-let currentStyle: LogoStyle = 'minimal-vector';
+let currentStyle: LogoStyle = 'geometric-badge';
 let currentColorHex = '#6366f1';
 let currentRawBitmap: ImageBitmap | null = null;
 let currentKnockout: KnockoutResult | null = null;
