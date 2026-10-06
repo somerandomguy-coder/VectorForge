@@ -16,6 +16,7 @@ import {
   downloadFaviconIco, 
   copySvgToClipboard 
 } from './ui/export-manager';
+import { runHardwareBenchmark, type BenchmarkMetrics } from './benchmark/benchmark-engine.js';
 
 // App State
 let worker: Worker;
@@ -109,6 +110,26 @@ const downloadProgressFill = document.getElementById('downloadProgressFill')!;
 const downloadBytesLabel = document.getElementById('downloadBytesLabel')!;
 const downloadSpeedLabel = document.getElementById('downloadSpeedLabel')!;
 const downloadStageLabel = document.getElementById('downloadStageLabel')!;
+
+// Benchmark Modal Controls
+const benchmarkBtn = document.getElementById('benchmarkBtn')!;
+const benchmarkModal = document.getElementById('benchmarkModal')!;
+const startBenchmarkBtn = document.getElementById('startBenchmarkBtn') as HTMLButtonElement;
+const benchStatusLabel = document.getElementById('benchStatusLabel')!;
+const benchProgressFill = document.getElementById('benchProgressFill')!;
+const benchmarkResultsPanel = document.getElementById('benchmarkResultsPanel')!;
+const tierBadge = document.getElementById('tierBadge')!;
+const tierScore = document.getElementById('tierScore')!;
+const tierDesc = document.getElementById('tierDesc')!;
+const tierRecPill = document.getElementById('tierRecPill')!;
+const metricGpuScore = document.getElementById('metricGpuScore')!;
+const metricGflops = document.getElementById('metricGflops')!;
+const metricBufferLimit = document.getElementById('metricBufferLimit')!;
+const metricTraceLatency = document.getElementById('metricTraceLatency')!;
+const metricKnockoutSpeed = document.getElementById('metricKnockoutSpeed')!;
+const metricOpfsSpeed = document.getElementById('metricOpfsSpeed')!;
+const benchBottlenecksBox = document.getElementById('benchBottlenecksBox')!;
+const benchBottleneckList = document.getElementById('benchBottleneckList')!;
 
 /**
  * Bootstraps the application
@@ -523,6 +544,9 @@ function bindEventListeners() {
   storageStatusBtn.addEventListener('click', () => openModal(storageModal));
   sampleGalleryBtn.addEventListener('click', () => openModal(galleryModal));
   helpModalBtn.addEventListener('click', () => openModal(guideModal));
+  benchmarkBtn.addEventListener('click', () => openModal(benchmarkModal));
+
+  startBenchmarkBtn.addEventListener('click', runBenchmarkSuite);
 
   document.querySelectorAll('[data-close]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -532,7 +556,7 @@ function bindEventListeners() {
   });
 
   // Modal Backdrop click to close
-  [hardwareModal, storageModal, galleryModal, guideModal].forEach((modal) => {
+  [hardwareModal, storageModal, galleryModal, guideModal, benchmarkModal].forEach((modal) => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeModal(modal);
     });
@@ -546,6 +570,53 @@ function bindEventListeners() {
   clearWeightsBtn.addEventListener('click', () => {
     worker.postMessage({ type: 'CLEAR_CACHE' } as WorkerRequest);
   });
+}
+
+async function runBenchmarkSuite() {
+  startBenchmarkBtn.disabled = true;
+  benchStatusLabel.textContent = 'Running benchmark suite...';
+  benchProgressFill.style.width = '10%';
+  benchmarkResultsPanel.style.display = 'none';
+
+  try {
+    const metrics = await runHardwareBenchmark((stage, percent) => {
+      benchStatusLabel.textContent = stage;
+      benchProgressFill.style.width = `${percent}%`;
+    });
+
+    renderBenchmarkResults(metrics);
+    showToast(`Benchmark complete: ${metrics.tierName}`, 'success');
+  } catch (err) {
+    benchStatusLabel.textContent = `Benchmark failed: ${(err as Error).message}`;
+    showToast('Benchmark encountered an error', 'error');
+  } finally {
+    startBenchmarkBtn.disabled = false;
+  }
+}
+
+function renderBenchmarkResults(m: BenchmarkMetrics) {
+  benchmarkResultsPanel.style.display = 'flex';
+  benchStatusLabel.textContent = `Completed in Tier: ${m.tierName}`;
+  benchProgressFill.style.width = '100%';
+
+  tierBadge.textContent = m.tierName.toUpperCase();
+  tierScore.textContent = `Score: ${m.totalScore.toLocaleString()} / 10,000`;
+  tierDesc.textContent = m.tierDescription;
+  tierRecPill.textContent = `Recommended Engine: ${m.recommendedMode === 'webgpu-onnx' ? '🧠 SD-Turbo ONNX WebGPU' : '⚡ Turbo Vector Synth'}`;
+
+  metricGpuScore.textContent = `${m.gpuComputeScore.toLocaleString()}`;
+  metricGflops.textContent = `${m.gpuShaderGflopsEstimate} GFLOPS`;
+  metricBufferLimit.textContent = `${m.maxStorageBufferMB} MB`;
+  metricTraceLatency.textContent = `${m.vectorizerLatencyMs} ms`;
+  metricKnockoutSpeed.textContent = `${m.alphaKnockoutThroughputMPps} MP/s`;
+  metricOpfsSpeed.textContent = `${m.opfsSpeedMBps} MB/s`;
+
+  if (m.bottlenecks.length > 0) {
+    benchBottlenecksBox.style.display = 'flex';
+    benchBottleneckList.innerHTML = m.bottlenecks.map((b) => `<li>${b}</li>`).join('');
+  } else {
+    benchBottlenecksBox.style.display = 'none';
+  }
 }
 
 function setColor(hex: string) {

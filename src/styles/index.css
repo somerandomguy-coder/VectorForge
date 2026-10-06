@@ -1493,3 +1493,204 @@ html, body {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==========================================================================
+   Benchmark & System Profiler Styles
+   ========================================================================== */
+
+.benchmark-action-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(14, 20, 36, 0.7);
+  border: 1px solid var(--bg-surface-border);
+  border-radius: var(--radius-md);
+}
+
+.bench-status-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bench-status-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.bench-progress-track {
+  height: 6px;
+}
+
+.benchmark-results-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: modal-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tier-banner {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tier-badge-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tier-badge {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: var(--grad-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.tier-score {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-emerald);
+}
+
+.tier-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.tier-rec-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--bg-surface-border);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  width: fit-content;
+}
+
+.bench-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.bench-metric-card {
+  padding: 12px 10px;
+  background: rgba(11, 16, 29, 0.8);
+  border: 1px solid var(--bg-surface-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: center;
+}
+
+.bench-metric-val {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.bench-metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.bench-metric-sub {
+  font-size: 10px;
+  color: var(--text-subtle);
+}
+
+.bench-bottlenecks-box {
+  padding: 12px 16px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bottleneck-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-amber);
+}
+
+.bottleneck-list {
+  padding-left: 18px;
+  font-size: 12px;
+  color: #fde68a;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.specs-comparison-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.specs-table-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.specs-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--bg-surface-border);
+  border-radius: var(--radius-md);
+}
+
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.specs-table th {
+  background: rgba(21, 29, 51, 0.9);
+  padding: 10px 14px;
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--bg-surface-border);
+}
+
+.specs-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+}
+
+.specs-table tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.specs-table td strong {
+  color: var(--text-main);
+}
+

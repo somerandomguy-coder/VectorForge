@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "mcp": "tsx src/mcp/server.ts",
     "mcp:http": "tsx src/mcp/server.ts --http 3000",
-    "test:mcp": "tsx test/test-mcp.ts"
+    "test:mcp": "tsx test/test-mcp.ts",
+    "benchmark": "tsx src/mcp/benchmark.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
