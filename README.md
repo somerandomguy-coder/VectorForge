@@ -293,6 +293,23 @@ vectorforge/
 
 ---
 
+## 🧪 Google Colab Experimentation Playground
+
+Want to experiment with diffusion models, fine-tune prompts, test game sprites/pixel art, or benchmark background removal algorithms in an isolated environment before building into VectorForge?
+
+A complete, standalone Jupyter Notebook is provided:
+- **Notebook:** [`VectorForge_Sprite_Diffusion_Playground.ipynb`](./VectorForge_Sprite_Diffusion_Playground.ipynb)
+- **Guide:** [`notebooks/README.md`](./notebooks/README.md)
+- **Colab Features:**
+  - 🚀 **Multi-Model Testing:** Fast 1-step `sd-turbo`, `sdxl-turbo`, and `stable-diffusion-v1-5`.
+  - 🎨 **Sprite & Prompt Presets:** Minimal vector marks, 16-bit RPG items, isometric props, pixel-art sheets, and app icons.
+  - ✂️ **Alpha Knockout Comparison:** VectorForge luminance thresholding vs chroma keying vs AI `rembg` (U2-Net).
+  - 📐 **Vectorization:** `vtracer` color vector tracing and Potrace-style SVG path extraction.
+  - 🕹️ **Interactive Dashboard:** Live `ipywidgets` GUI with seed controls and 1-click SVG/PNG downloads.
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](./LICENSE).
+
